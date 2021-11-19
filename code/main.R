@@ -4,15 +4,65 @@ library(leaps)
 
 
 ### 1. Reading data and dealing with NA values 
-red <- read.csv("./data/winequality-red.csv", header = TRUE, sep = ";")
+red <- read.csv("../data/winequality-red.csv", header = TRUE, sep = ";")
+
+##SJ## Using .. allows the code to work for anyone who clones this; main.R is 
+##SJ## in /code while the data is in /data.
+
 #white <- read.csv("./data/winequality-white.csv", header = TRUE, sep = ";")
 
-          # Delete rows with NA values
-red <- red[complete.cases(red), ]
+red[!complete.cases(red),]
+##SJ## This part looks unncecessary; there are no missing values =(
 
-          # Delete duplicated rows
-red <- red[!duplicated(red), ]
+# Delete rows with NA values
+#red <- red[complete.cases(red), ]
+
+
+# Delete duplicated rows
+#red <- red[!duplicated(red), ]
 # red[duplicated(red), ]
+##SJ## Do we really want to delete the duplicated rows...?
+
+
+
+
+### 1.5 Overview of Data
+
+library(tibble)
+library(dplyr)
+library(ggplot2)
+
+summary(red)
+
+
+varnames = colnames(red)
+
+par(mfrow = c(3, 4))
+
+for(name in varnames){
+        hist(red[[name]], main=name, xlab = NULL, ylab = NULL )
+}
+
+mean_summary = red %>% group_by(quality) %>% summarise_all(mean)
+
+par(mfrow = c(3, 4))
+
+for(name in varnames){
+        plot(mean_summary$quality,
+             mean_summary[[name]],
+             ylab = name
+             )
+}
+
+ggplot(data = red) + geom_histogram(aes(x=total.sulfur.dioxide, 
+                                        fill = as.factor(quality)))
+
+lm_red <- lm(quality ~ ., red)
+summary(lm_red)
+
+par(mfrow = c(2, 2))
+plot(lm_red)
+
 
 ### 2. Variable Selection
 lm_red <- lm(quality ~ ., red)
