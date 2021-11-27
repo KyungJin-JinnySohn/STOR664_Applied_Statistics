@@ -110,6 +110,12 @@ head(df1)
 
 summary(lm1)
 
+# Map dependent variable to the real line.
+
+logitlm = lm(log(quality/(11-quality)) ~., data = df1)
+
+summary(logitlm)
+summary(lm1)
 
 ### 4. Variable Selection
 lm_red <- lm(quality ~ ., df1)
