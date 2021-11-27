@@ -116,7 +116,7 @@ lm_red <- lm(quality ~ ., df1)
 summary(lm_red)
 
 require(leaps)
-b <- regsubsets(quality ~ ., df1)
+b <- regsubsets(quality ~ ., df1, nvmax = 12)
 rs <- summary(b)
 
 par(mfrow = c(1, 3))
@@ -124,21 +124,23 @@ par(mfrow = c(1, 3))
 rs$which
 
 # There's a function AIC, we shouldn't use this variable name
-AIC <- nrow(red)*log(rs$rss/nrow(red)) + (2:9)*2
-plot(AIC ~ I(1:8), 
+p = 11
+AIC <- nrow(red)*log(rs$rss/nrow(red)) + (2:(p+1))*2
+plot(AIC ~ I(1:p), 
      #main = "AIC",
      ylab = 'AIC',
      xlab = 'Number of Predictors', pch = 20)
-text(I(1:8), AIC, round(AIC, 2), cex = 0.5, pos = 4)
+text(I(1:p), AIC, round(AIC, 2), cex = 0.5, pos = 4)
+which.min(AIC)
 
           # Adjusted R-Squre
-plot(1:8, rs$adjr2,
+plot(1:p, rs$adjr2,
      xlab = 'Number of Predictors',
      ylab='Adjusted R-Square', pch = 20)
 which.max(rs$adjr2)
 
           # Mellow's Cp
-plot(2:9, rs$cp,
+plot(2:(p+1), rs$cp,
      xlab = 'Number of Parameters',
      ylab = 'Cp Statistic', pch = 20)
 abline(0,1)
