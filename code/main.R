@@ -1,36 +1,49 @@
 ### 0. Install libraries
-if(!require(tibble)) 
-        install.packages('tibble',repos = "http://cran.us.r-project.org")
-if(!require(dplyr)) 
-        install.packages('dplyr',repos = "http://cran.us.r-project.org")
-if(!require(ggplot2)) 
-        install.packages('ggplot2',repos = "http://cran.us.r-project.org")
-if(!require(leaps)) 
-        install.packages('leaps',repos = "http://cran.us.r-project.org")
-library(tibble)
-library(dplyr)
-library(ggplot2)
+#install.packages("leaps")
 library(leaps)
 
 
-### 1. Overview of Data
+### 0. Data Preprocessing
 red <- read.csv("../data/winequality-red.csv", header = TRUE, sep = ";")
-# white <- read.csv("../data/winequality-white.csv", header = TRUE, sep = ";")
 
-        # 1) summary of the data
+## Using .. allows the code to work for anyone who clones this; main.R is 
+## in /code while the data is in /data. If the working directory is set
+## as the directory of main.R, this should work.
+
+#white <- read.csv("./data/winequality-white.csv", header = TRUE, sep = ";")
+
+red[!complete.cases(red),]
+## This part looks unnecessary; there are no missing values =(
+
+# Delete rows with NA values
+#red <- red[complete.cases(red), ]
+
+
+# Delete duplicated rows
+#red <- red[!duplicated(red), ]
+# red[duplicated(red), ]
+## Do we really want to delete the duplicated rows...?
+
+
+
+
+### 1 Overview of Data
+
+library(tibble)
+library(dplyr)
+library(ggplot2)
+
 summary(red)
 
-        # 2) histogram: distribution of each variable
+
 varnames = colnames(red)
 
 par(mfrow = c(3, 4))
 
 for(name in varnames){
-        hist(red[[name]], main = name, xlab = NULL, ylab = NULL )
+        hist(red[[name]], main=name, xlab = NULL, ylab = NULL )
 }
 
-        # 3) scatter plot: 
-        #       average distribution of each variable based on the quality
 mean_summary = red %>% group_by(quality) %>% summarise_all(mean)
 
 par(mfrow = c(3, 4))
@@ -38,16 +51,13 @@ par(mfrow = c(3, 4))
 for(name in varnames){
         plot(mean_summary$quality,
              mean_summary[[name]],
-             xlab = "quality",
              ylab = name
              )
 }
 
-        # 4)
-ggplot(data = red) + geom_histogram(aes(x = total.sulfur.dioxide, 
+ggplot(data = red) + geom_histogram(aes(x=total.sulfur.dioxide, 
                                         fill = as.factor(quality)))
 
-        # 5)
 lm_red <- lm(quality ~ ., red)
 summary(lm_red)
 
