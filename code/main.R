@@ -7,12 +7,15 @@ if(!require(ggplot2))
         install.packages('ggplot2', repos = "http://cran.us.r-project.org")
 if(!require(leaps)) 
         install.packages('leaps', repos = "http://cran.us.r-project.org")
+if(!require(pls)) 
+        install.packages('pls', repos = "http://cran.us.r-project.org")
 if(!require(glmnet)) 
         install.packages('glmnet', repos = "http://cran.us.r-project.org")
 library(tibble)
 library(dplyr)
 library(ggplot2)
 library(leaps)
+library(pls)
 library(glmnet)
 
 
@@ -178,7 +181,30 @@ abline(0,1)
 
 par(mfrow = c(1, 1))
 
-# 4) Ridge
+# 4) Principal component regression
+require(pls)
+set.seed(664)
+lm_pcr <- pcr(quality ~ ., data = quadred, validation = "CV", ncomp = 22)
+cv_pcr <- RMSEP(lm_pcr, estimate = "CV")
+
+min_pcr <- which.min(cv_pcr$val) - 1
+
+plot(cv_pcr, main = "")
+
+# 5) Partial least squares regression
+set.seed(664)
+lm_pls <- plsr(quality ~ ., data = quadred, validation = "CV", ncomp = 22)
+cv_pls <- RMSEP(lm_pls, estimate = "CV")
+
+min_pls <- which.min(cv_pls$val) -1
+
+par(mfrow = c(1,2))
+coefplot(lm_pls, ncomp = min_pls, xlab = "Frequency")
+plot(cv_pls, main = "")
+par(mfrow = c(1,1))
+
+
+# 6) Ridge
 set.seed(664)
 cv_ridge = cv.glmnet(as.matrix(df1[,-1]), df1[,12],
                      alpha = 0, type.measure = 'mae')
@@ -191,7 +217,7 @@ opt_lambda_ridge = cv_ridge$lambda.min
 lm_ridge = cv_ridge$glmnet.fit
 
 
-# 5) LASSO
+# 7) LASSO
 set.seed(664)
 cv_lasso = cv.glmnet(as.matrix(df1[,-1]), df1[,12],
                      alpha = 1, type.measure = 'mae')
@@ -202,7 +228,7 @@ lm_lasso = cv_lasso$glmnet.fit
 
 # No need for penalization
 
-# 6) final model selected using AIC
+# 8) final model selected using AIC
 min_aic = which.min(eval_aic)
 
 boolCol <- as.vector(rs$which[min_aic, -1])
