@@ -122,6 +122,9 @@ logitlm = lm(log(quality/(11-quality)) ~., data = df1)
 summary(logitlm)
 summary(lm1)
 
+comp_AIC = rbind(comp_AIC, c("Logit.", round(AIC(logitlm), 3)))
+comp_AIC
+
 
 ### 3. Variable Selection
 colnames(df1)
@@ -201,11 +204,17 @@ lm_lasso = cv_lasso$glmnet.fit
 
 # 6) final model selected using AIC
 min_aic = which.min(eval_aic)
-df_aic = quadred[,c(rs$which[min_aic, -1][1:11], 
-                       TRUE, rs$which[min_aic, -1][12:22])]
+
+boolCol <- as.vector(rs$which[min_aic, -1])
+boolCol <- c(boolCol[1:11] | boolCol[12:22], TRUE, boolCol[12:22])
+
+df_aic = quadred[,boolCol]
 
 lm_aic = lm(quality ~., data = df_aic)
 summary(lm_aic)
+
+comp_AIC = rbind(comp_AIC, c("VS_AIC", round(AIC(lm_aic), 3)))
+comp_AIC
 
 
 ### 5. Estimation of Error
