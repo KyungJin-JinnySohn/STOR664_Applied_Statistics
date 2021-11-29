@@ -125,7 +125,9 @@ logitlm = lm(log(quality/(11-quality)) ~., data = df1)
 summary(logitlm)
 summary(lm1)
 
-comp_AIC = rbind(comp_AIC, c("Logit.", round(AIC(logitlm), 3)))
+AIC_correction = sum(log(11/df1$quality/(11-df1$quality))) *2
+
+comp_AIC = rbind(comp_AIC, c("Logit.", round(AIC(logitlm) - AIC_correction, 3)))
 comp_AIC
 
 
@@ -206,12 +208,9 @@ par(mfrow = c(1,1))
 
 # 6) Ridge
 set.seed(664)
-cv_ridge = cv.glmnet(as.matrix(quadred[,-1]), quadred[,12],
-                     alpha = 0, type.measure = 'mae')
-plot(cv_ridge)
-cv_ridge = cv.glmnet(as.matrix(quadred[,-1]), quadred[,12],
+cv_ridge = cv.glmnet(as.matrix(quadred[,-12]), quadred[,12],
                      alpha = 0, type.measure = 'mae',
-                     lambda = seq(0, 1, len = 100))
+                     lambda = seq(0, 0.1, len = 100))
 plot(cv_ridge)
 opt_lambda_ridge = cv_ridge$lambda.min
 lm_ridge = cv_ridge$glmnet.fit
@@ -219,27 +218,41 @@ lm_ridge = cv_ridge$glmnet.fit
 
 # 7) LASSO
 set.seed(664)
-cv_lasso = cv.glmnet(as.matrix(quadred[,-1]), quadred[,12],
-                     alpha = 1, type.measure = 'mae')
+cv_lasso = cv.glmnet(as.matrix(quadred[,-12]), quadred[,12],
+                     alpha = 1, type.measure = 'mae',
+                     lambda = seq(0, 0.1, len = 100))
 plot(cv_lasso)
 opt_lambda_lasso = cv_lasso$lambda.min
 lm_lasso = cv_lasso$glmnet.fit
 
+opt_lambda_lasso
+lasso_beta = lm_lasso$beta[,which(lm_lasso$lambda == opt_lambda_lasso)]
+boolCol_lasso = as.vector(lasso_beta!= 0)
 
 # No need for penalization
 
 # 8) final model selected using AIC
 min_aic = which.min(eval_aic)
 
-boolCol <- as.vector(rs$which[min_aic, -1])
-boolCol <- c(boolCol[1:11] | boolCol[12:22], TRUE, boolCol[12:22])
+find_hierarchical <- function(boolCol, p){
+        return(c(boolCol[1:p]|boolCol[(p+1):(2*p)], T, boolCol[(p+1):(2*p)]))
+}
 
-df_aic = quadred[,boolCol]
+boolCol_step <- as.vector(rs$which[min_aic, -1])
+boolCol_step = find_hierarchical(boolCol, 11)
+boolCol_lasso = find_hierarchical(boolCol_lasso, 11)
 
-lm_aic = lm(quality ~., data = df_aic)
-summary(lm_aic)
+df_step_hier = quadred[,boolCol_step]
+df_lasso_hier = quadred[,boolCol_lasso]
 
-comp_AIC = rbind(comp_AIC, c("VS_AIC", round(AIC(lm_aic), 3)))
+lm_step_hier = lm(quality ~., data = df_step_hier)
+lm_lasso_hier = lm(quality ~., data = df_lasso_hier)
+
+summary(lm_step_hier)
+summary(lm_lasso_hier)
+
+comp_AIC = rbind(comp_AIC, c("quad_step", round(AIC(lm_step_hier), 3)))
+comp_AIC = rbind(comp_AIC, c("quad_lasso", round(AIC(lm_lasso_hier), 3)))
 comp_AIC
 
 
