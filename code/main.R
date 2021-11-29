@@ -50,6 +50,7 @@ for(name in varnames){
 ggplot(data = red) + geom_histogram(aes(x = total.sulfur.dioxide, 
                                         fill = as.factor(quality)))
 
+
 # 5) linear regression analysis of original data
 lm_ori = lm(quality ~ ., red)
 summary(lm_ori)
@@ -183,7 +184,7 @@ df_train = df1[(1:n)%%10!=0,]
 df_test = df1[(1:n)%%10==0,]
 
 lm_train = lm(quality ~., data = df_train)
-test_pred = predict(lm_final, df_test)
+test_pred = predict(lm_train, df_test)
 plot(test_pred, df_test$quality)
 
 mean((test_pred-df_test$quality)^2)
