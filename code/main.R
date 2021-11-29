@@ -206,10 +206,10 @@ par(mfrow = c(1,1))
 
 # 6) Ridge
 set.seed(664)
-cv_ridge = cv.glmnet(as.matrix(df1[,-1]), df1[,12],
+cv_ridge = cv.glmnet(as.matrix(quadred[,-1]), quadred[,12],
                      alpha = 0, type.measure = 'mae')
 plot(cv_ridge)
-cv_ridge = cv.glmnet(as.matrix(df1[,-1]), df1[,12],
+cv_ridge = cv.glmnet(as.matrix(quadred[,-1]), quadred[,12],
                      alpha = 0, type.measure = 'mae',
                      lambda = seq(0, 1, len = 100))
 plot(cv_ridge)
@@ -219,7 +219,7 @@ lm_ridge = cv_ridge$glmnet.fit
 
 # 7) LASSO
 set.seed(664)
-cv_lasso = cv.glmnet(as.matrix(df1[,-1]), df1[,12],
+cv_lasso = cv.glmnet(as.matrix(quadred[,-1]), quadred[,12],
                      alpha = 1, type.measure = 'mae')
 plot(cv_lasso)
 opt_lambda_lasso = cv_lasso$lambda.min
