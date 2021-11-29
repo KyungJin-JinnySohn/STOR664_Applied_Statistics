@@ -258,9 +258,10 @@ comp_AIC
 
 ### 5. Estimation of Error
 
-n = nrow(df1)
-df_train = df1[(1:n)%%10!=0,]
-df_test = df1[(1:n)%%10==0,]
+df_final = df_step_hier
+n = nrow(df_final)
+df_train = df_final[(1:n)%%5!=0,]
+df_test = df_final[(1:n)%%5==0,]
 
 lm_train = lm(quality ~., data = df_train)
 test_pred = predict(lm_train, df_test)
@@ -271,24 +272,24 @@ mean((test_pred-df_test$quality)^2) - 1/12
 
 table(round(test_pred), df_test$quality)
 
-lm_final = lm(quality~., data = df1)
-table(round(predict(lm_final, data = df1)), df1$quality)
+lm_final = lm(quality~., data = df_final)
+table(round(predict(lm_final, data = df_final)), df_final$quality)
 
 
 ### 6. Weighted Least Squares for imbalanced data
 
 
-wt1 = 1/sqrt(table(df1$quality))
-wts1 = wt1[df1$quality-2]
+wt1 = 1/sqrt(table(df_train$quality))
+wts1 = wt1[df_train$quality-2]
 
-wt2 = 1/table(df1$quality)
-wts2 = wt2[df1$quality-2]
+wt2 = 1/table(df_train$quality)
+wts2 = wt2[df_train$quality-2]
 
-lm_final = lm(quality~., data = df1)
-table(round(predict(lm_final, data = df1)), df1$quality)
+lm_train = lm(quality~., data = df_train)
+table(round(predict(lm_train, newdata = df_test)), df_test$quality)
 
-lm_wt1 = lm(quality~., data = df1, weights = wts1)
-table(round(predict(lm_wt1, data = df1)), df1$quality)
+lm_wt1 = lm(quality~., data = df_train, weights = wts1)
+table(round(predict(lm_wt1, newdata = df_test)), df_test$quality)
 
-lm_wt2 = lm(quality~., data = df1, weights = wts2)
-table(round(predict(lm_wt2, data = df1)), df1$quality)
+lm_wt2 = lm(quality~., data = df_train, weights = wts2)
+table(round(predict(lm_wt2, newdata = df_test)), df_test$quality)
