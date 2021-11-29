@@ -87,17 +87,17 @@ comp_AIC$AIC = round(comp_AIC$AIC, 3)
 comp_AIC
 
 # 3) select the predictor to use with the log transformation.
-boolExpand <- expand.grid(c(0,1), c(0,1), c(0,1), c(0,1), c(0,1), 
+boolExpand = expand.grid(c(0,1), c(0,1), c(0,1), c(0,1), c(0,1), 
                           c(0,1), c(0,1), c(0,1), c(0,1))
-boolExpand <- cbind(boolExpand[,1:2], 0, boolExpand[,3:7], 0, boolExpand[,8:9])
+boolExpand = cbind(boolExpand[,1:2], 0, boolExpand[,3:7], 0, boolExpand[,8:9])
 
 df1 = logred[,1:12] # ori. data
 lm1 = lm(quality ~ ., df1) # lm model
 aic1 = AIC(lm1) # ori. AIC
 
 for (i in 1:nrow(boolExpand)) { 
-        bool <- as.numeric(boolExpand[i,])  
-        df_trans <- logred[, c(bool*12 + 1:11, 12)]
+        bool = as.numeric(boolExpand[i,])  
+        df_trans = logred[, c(bool*12 + 1:11, 12)]
         
         lm2 = lm(quality ~ ., df_trans)
         aic2 = AIC(lm2)
@@ -124,19 +124,36 @@ summary(lm1)
 
 
 ### 3. Variable Selection
-lm_trans = lm(quality ~ ., df1)
+colnames(df1)
+
+quadred = df1
+# 1) add 11 new columns that transform each column data into (data)^2
+quadred$quadFA = (quadred$logFA)^2
+quadred$quadVA = (quadred$volatile.acidity)^2
+quadred$quadCA = (quadred$citric.acid)^2
+quadred$quadRS = (quadred$logRS)^2
+quadred$quadCL = (quadred$chlorides)^2
+quadred$quadFS = (quadred$logFS)^2
+quadred$quadTS = (quadred$total.sulfur.dioxide)^2
+quadred$quadDE = (quadred$logDE)^2
+quadred$quadPH = (quadred$pH)^2
+quadred$quadSP = (quadred$logSP)^2
+quadred$quadAL = (quadred$alcohol)^2
+
+
+lm_trans = lm(quality ~ ., quadred)
 summary(lm_trans)
 
 # 1) AIC
 require(leaps)
-b = regsubsets(quality ~ ., df1, nvmax = 12)
+b = regsubsets(quality ~ ., quadred, nvmax = 22)
 rs = summary(b)
 
 rs$which
 
 par(mfrow = c(1, 3))
 
-p = 11
+p = 22
 eval_aic = nrow(red)*log(rs$rss/nrow(red)) + (2:(p+1))*2
 plot(eval_aic ~ I(1:p), 
      ylab = 'AIC',
@@ -181,6 +198,15 @@ lm_lasso = cv_lasso$glmnet.fit
 
 
 # No need for penalization
+
+# 6) final model selected using AIC
+min_aic = which.min(eval_aic)
+df_aic = quadred[,c(rs$which[min_aic, -1][1:11], 
+                       TRUE, rs$which[min_aic, -1][12:22])]
+
+lm_aic = lm(quality ~., data = df_aic)
+summary(lm_aic)
+
 
 ### 5. Estimation of Error
 
