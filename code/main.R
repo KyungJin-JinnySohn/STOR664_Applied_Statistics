@@ -169,6 +169,9 @@ plot(eval_aic ~ I(1:p),
 text(I(1:p), eval_aic, round(eval_aic, 2), cex = 0.5, pos = 4)
 paste("min AIC: ", which.min(eval_aic))
 
+min_aic = which.min(eval_aic)
+boolCol_step = as.vector(rs$which[min_aic, -1]) # columns selected by min AIC
+
 # 2) Adjusted R-Squre
 plot(1:p, rs$adjr2,
      xlab = 'Number of Predictors',
@@ -186,19 +189,19 @@ par(mfrow = c(1, 1))
 # 4) Principal component regression
 require(pls)
 set.seed(664)
-lm_pcr <- pcr(quality ~ ., data = quadred, validation = "CV", ncomp = 22)
-cv_pcr <- RMSEP(lm_pcr, estimate = "CV")
+lm_pcr = pcr(quality ~ ., data = quadred, validation = "CV", ncomp = 22)
+cv_pcr = RMSEP(lm_pcr, estimate = "CV")
 
-min_pcr <- which.min(cv_pcr$val) - 1
+min_pcr = which.min(cv_pcr$val) - 1
 
 plot(cv_pcr, main = "")
 
 # 5) Partial least squares regression
 set.seed(664)
-lm_pls <- plsr(quality ~ ., data = quadred, validation = "CV", ncomp = 22)
-cv_pls <- RMSEP(lm_pls, estimate = "CV")
+lm_pls = plsr(quality ~ ., data = quadred, validation = "CV", ncomp = 22)
+cv_pls = RMSEP(lm_pls, estimate = "CV")
 
-min_pls <- which.min(cv_pls$val) -1
+min_pls = which.min(cv_pls$val) -1
 
 par(mfrow = c(1,2))
 coefplot(lm_pls, ncomp = min_pls, xlab = "Frequency")
@@ -215,6 +218,7 @@ plot(cv_ridge)
 opt_lambda_ridge = cv_ridge$lambda.min
 lm_ridge = cv_ridge$glmnet.fit
 
+opt_lambda_ridge # optimum lambda by ridge regression
 
 # 7) LASSO
 set.seed(664)
@@ -225,21 +229,18 @@ plot(cv_lasso)
 opt_lambda_lasso = cv_lasso$lambda.min
 lm_lasso = cv_lasso$glmnet.fit
 
-opt_lambda_lasso
+opt_lambda_lasso # optimum lambda by LASSO
 lasso_beta = lm_lasso$beta[,which(lm_lasso$lambda == opt_lambda_lasso)]
-boolCol_lasso = as.vector(lasso_beta!= 0)
+boolCol_lasso = as.vector(lasso_beta != 0) # column selected by LASSO
 
 # No need for penalization
 
-# 8) final model selected using AIC
-min_aic = which.min(eval_aic)
-
+# 8) comparing final model selected using AIC vs LASSO
 find_hierarchical <- function(boolCol, p){
         return(c(boolCol[1:p]|boolCol[(p+1):(2*p)], T, boolCol[(p+1):(2*p)]))
 }
 
-boolCol_step <- as.vector(rs$which[min_aic, -1])
-boolCol_step = find_hierarchical(boolCol, 11)
+boolCol_step = find_hierarchical(boolCol_step, 11)
 boolCol_lasso = find_hierarchical(boolCol_lasso, 11)
 
 df_step_hier = quadred[,boolCol_step]
