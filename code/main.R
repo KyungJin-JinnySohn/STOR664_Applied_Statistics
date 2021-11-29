@@ -87,17 +87,22 @@ comp_AIC$AIC = round(comp_AIC$AIC, 3)
 comp_AIC
 
 # 3) select the predictor to use with the log transformation.
+boolExpand <- expand.grid(c(0,1), c(0,1), c(0,1), c(0,1), c(0,1), 
+                          c(0,1), c(0,1), c(0,1), c(0,1))
+boolExpand <- cbind(boolExpand[,1:2], 0, boolExpand[,3:7], 0, boolExpand[,8:9])
+
 df1 = logred[,1:12] # ori. data
 lm1 = lm(quality ~ ., df1) # lm model
-aic1 = AIC(lm1) # AIC
-for(i in 1:11){
-        df2 = df1
-        df2[,i] = logred[12+i]
-        colnames(df2)[i] = colnames(logred[12+i])
-        lm2 = lm(quality ~ ., df2)
+aic1 = AIC(lm1) # ori. AIC
+
+for (i in 1:nrow(boolExpand)) { 
+        bool <- as.numeric(boolExpand[i,])  
+        df_trans <- logred[, c(bool*12 + 1:11, 12)]
+        
+        lm2 = lm(quality ~ ., df_trans)
         aic2 = AIC(lm2)
         if(aic2 < aic1){
-                df1 = df2
+                df1 = df_trans
                 lm1 = lm2
                 aic1 = aic2
                 print(paste0('switching ', i))
@@ -111,12 +116,12 @@ names(df1) # final columns selected
 comp_AIC = rbind(comp_AIC, c("Trans.", round(AIC(lm1), 3)))
 comp_AIC
 
-# Map dependent variable to the real line.
-
+# 5) Map dependent variable to the real line.
 logitlm = lm(log(quality/(11-quality)) ~., data = df1)
 
 summary(logitlm)
 summary(lm1)
+
 
 ### 3. Variable Selection
 lm_trans = lm(quality ~ ., df1)
