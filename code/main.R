@@ -201,11 +201,20 @@ lm_final = lm(quality~., data = df1)
 table(round(predict(lm_final, data = df1)), df1$quality)
 
 
-### 6. Resampling?
+### 6. Weighted Least Squares for imbalanced data
 
 
-wt = 1/sqrt(table(df1$quality))
-wts = wt[df1$quality-2]
+wt1 = 1/sqrt(table(df1$quality))
+wts1 = wt1[df1$quality-2]
 
-lm_wt = lm(quality~., data = df1, weights = wts)
-table(round(predict(lm_wt, data = df1)), df1$quality)
+wt2 = 1/table(df1$quality)
+wts2 = wt2[df1$quality-2]
+
+lm_final = lm(quality~., data = df1)
+table(round(predict(lm_final, data = df1)), df1$quality)
+
+lm_wt1 = lm(quality~., data = df1, weights = wts1)
+table(round(predict(lm_wt1, data = df1)), df1$quality)
+
+lm_wt2 = lm(quality~., data = df1, weights = wts2)
+table(round(predict(lm_wt2, data = df1)), df1$quality)
