@@ -239,8 +239,6 @@ opt_lambda_lasso # optimum lambda by LASSO
 lasso_beta = lm_lasso$beta[,which(lm_lasso$lambda == opt_lambda_lasso)]
 boolCol_lasso = as.vector(lasso_beta != 0) # column selected by LASSO
 
-# No need for penalization
-
 # 8) comparing final model selected using AIC vs LASSO
 find_hierarchical <- function(boolCol, p){
         return(c(boolCol[1:p]|boolCol[(p+1):(2*p)], T, boolCol[(p+1):(2*p)]))
@@ -262,15 +260,20 @@ comp_AIC = rbind(comp_AIC, c("quad_step", round(AIC(lm_step_hier), 3)))
 comp_AIC = rbind(comp_AIC, c("quad_lasso", round(AIC(lm_lasso_hier), 3)))
 comp_AIC
 
+par(mfrow = c(1, 2))
+
+plot(lm_step_hier, which = 1)
+plot(lm_step_hier, which = 2)
+
+par(mfrow = c(1, 1))
 
 ### 5. Estimation of Error
-
 df_final = df_step_hier
 n = nrow(df_final)
-df_train = df_final[(1:n)%%5!=0,]
-df_test = df_final[(1:n)%%5==0,]
+df_train = df_final[(1:n)%%5 != 0,]
+df_test = df_final[(1:n)%%5 == 0,]
 
-lm_train = lm(quality ~., data = df_train)
+lm_train = lm(quality ~ ., data = df_train)
 test_pred = predict(lm_train, df_test)
 plot(test_pred, df_test$quality)
 
@@ -279,13 +282,11 @@ mean((test_pred-df_test$quality)^2) - 1/12
 
 table(round(test_pred), df_test$quality)
 
-lm_final = lm(quality~., data = df_final)
+lm_final = lm(quality ~ ., data = df_final)
 table(round(predict(lm_final, data = df_final)), df_final$quality)
 
 
 ### 6. Weighted Least Squares for imbalanced data
-
-
 wt1 = 1/sqrt(table(df_train$quality))
 wts1 = wt1[df_train$quality-2]
 
