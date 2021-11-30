@@ -52,13 +52,11 @@ for(name in varnames){
         )
 }
 
-# 4) ?
-ggplot(data = red) + geom_histogram(aes(x = total.sulfur.dioxide, 
-                                        fill = as.factor(quality)))
-ggplot(gather(red, key, value, -c(quality)), 
+# 4) histogram: distribution of each variable grouped by quality
+ggplot(gather(red, key, value, -c(quality), factor_key = TRUE), 
        aes(value, fill = factor(quality))) + 
         geom_histogram(bins = 30) + 
-        facet_wrap(~key, scales = 'free_x')
+        facet_wrap(~ key, scales = 'free_x')
 
 
 # 5) linear regression analysis of original data
@@ -68,7 +66,8 @@ summary(lm_ori)
 par(mfrow = c(2, 2))
 plot(lm_ori)
 
-cor(red) # ?
+# 6) Check multicolinearity
+cor(red)
 
 
 ### 2. Transformations
