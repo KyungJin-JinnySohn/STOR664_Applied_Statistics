@@ -3,6 +3,8 @@ if(!require(tibble))
         install.packages('tibble', repos = "http://cran.us.r-project.org")
 if(!require(dplyr)) 
         install.packages('dplyr', repos = "http://cran.us.r-project.org")
+if(!require(reshape2)) 
+        install.packages('reshape2', repos = "http://cran.us.r-project.org")
 if(!require(ggplot2)) 
         install.packages('ggplot2', repos = "http://cran.us.r-project.org")
 if(!require(leaps)) 
@@ -13,6 +15,7 @@ if(!require(glmnet))
         install.packages('glmnet', repos = "http://cran.us.r-project.org")
 library(tibble)
 library(dplyr)
+library(reshape2)
 library(ggplot2)
 library(leaps)
 library(pls)
@@ -52,6 +55,10 @@ for(name in varnames){
 # 4) ?
 ggplot(data = red) + geom_histogram(aes(x = total.sulfur.dioxide, 
                                         fill = as.factor(quality)))
+ggplot(gather(red, key, value, -c(quality)), 
+       aes(value, fill = factor(quality))) + 
+        geom_histogram(bins = 30) + 
+        facet_wrap(~key, scales = 'free_x')
 
 
 # 5) linear regression analysis of original data
