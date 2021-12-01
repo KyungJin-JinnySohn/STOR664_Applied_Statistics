@@ -68,7 +68,7 @@ plot(lm_ori)
 
 # 6) Check multicolinearity
 cor(red)
-
+ifelse(abs(cor(red))>0.5, cor(red), 0)
 
 ### 2. Transformations
 colnames(red)
