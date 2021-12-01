@@ -260,33 +260,12 @@ comp_AIC = rbind(comp_AIC, c("quad_step", round(AIC(lm_step_hier), 3)))
 comp_AIC = rbind(comp_AIC, c("quad_lasso", round(AIC(lm_lasso_hier), 3)))
 comp_AIC
 
-par(mfrow = c(1, 2))
-
-plot(lm_step_hier, which = 1)
-plot(lm_step_hier, which = 2)
-
-par(mfrow = c(1, 1))
-
-### 5. Estimation of Error
+### 5. Weighted Least Squares for imbalanced data
 df_final = df_step_hier
 n = nrow(df_final)
 df_train = df_final[(1:n)%%5 != 0,]
 df_test = df_final[(1:n)%%5 == 0,]
 
-lm_train = lm(quality ~ ., data = df_train)
-test_pred = predict(lm_train, df_test)
-plot(test_pred, df_test$quality)
-
-mean((test_pred-df_test$quality)^2)
-mean((test_pred-df_test$quality)^2) - 1/12
-
-table(round(test_pred), df_test$quality)
-
-lm_final = lm(quality ~ ., data = df_final)
-table(round(predict(lm_final, data = df_final)), df_final$quality)
-
-
-### 6. Weighted Least Squares for imbalanced data
 wt1 = 1/sqrt(table(df_train$quality))
 wts1 = wt1[df_train$quality-2]
 
@@ -301,3 +280,49 @@ table(round(predict(lm_wt1, newdata = df_test)), df_test$quality)
 
 lm_wt2 = lm(quality~., data = df_train, weights = wts2)
 table(round(predict(lm_wt2, newdata = df_test)), df_test$quality)
+
+wt = 1/table(df_final$quality)
+wts = wt[df_final$quality-2]
+
+lm_final = lm(quality ~ ., data = df_final, weights = wts)
+table(round(predict(lm_final, data = df_final)), df_final$quality)
+summary(lm_final)
+
+par(mfrow = c(1, 2))
+
+plot(lm_step_hier, which = 1)
+plot(lm_step_hier, which = 2)
+
+par(mfrow = c(1, 1))
+
+### 6. Estimation of Error
+
+lm_train = lm(quality ~ ., data = df_train, weights = wts2)
+test_pred = predict(lm_train, df_test)
+plot(test_pred, df_test$quality)
+
+mean((test_pred-df_test$quality)^2)
+mean((test_pred-df_test$quality)^2) - 1/12
+
+table(round(test_pred), df_test$quality)
+
+### 7. Optimal Wine Design
+
+summary(df_final)
+
+optx = -lm_final$coefficients[c(2,3,7:10)]/lm_final$coefficients[c(12:17)]/2
+
+optwine = data.frame(logFA = optx[1], quadFA = optx[1]^2, 
+                     volatile.acidity = min(df_final$volatile.acidity), 
+                     quadVA = min(df_final$volatile.acidity)^2,
+                     logRS = min(df_final$logRS),
+                     chlorides = max(df_final$chlorides),
+                     logFS = max(df_final$logFS),
+                     total.sulfur.dioxide = optx[3], quadTS = optx[3]^2,
+                     logDE = min(df_final$logDE), quadDE = min(df_final$logDE)^2,
+                     pH = min(df_final$pH), quadPH = min(df_final$pH)^2,
+                     logSP = optx[6], quadSP = optx[6]^2,
+                     alcohol = max(df_final$alcohol)
+                     )
+
+predict(lm_final, newdata = optwine)
