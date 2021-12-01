@@ -260,6 +260,13 @@ comp_AIC = rbind(comp_AIC, c("quad_step", round(AIC(lm_step_hier), 3)))
 comp_AIC = rbind(comp_AIC, c("quad_lasso", round(AIC(lm_lasso_hier), 3)))
 comp_AIC
 
+par(mfrow = c(1, 2))
+
+plot(lm_step_hier, which = 1)
+plot(lm_step_hier, which = 2)
+
+par(mfrow = c(1, 1))
+
 
 ### 4. Weighted Least Squares for imbalanced data
 df_final = df_step_hier
@@ -288,13 +295,6 @@ wts = wt[df_final$quality-2]
 lm_final = lm(quality ~ ., data = df_final, weights = wts)
 table(round(predict(lm_final, data = df_final)), df_final$quality)
 summary(lm_final)
-
-par(mfrow = c(1, 2))
-
-plot(lm_final, which = 1)
-plot(lm_final, which = 2)
-
-par(mfrow = c(1, 1))
 
 
 ### 5. Estimation of Error
