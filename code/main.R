@@ -260,7 +260,8 @@ comp_AIC = rbind(comp_AIC, c("quad_step", round(AIC(lm_step_hier), 3)))
 comp_AIC = rbind(comp_AIC, c("quad_lasso", round(AIC(lm_lasso_hier), 3)))
 comp_AIC
 
-### 5. Weighted Least Squares for imbalanced data
+
+### 4. Weighted Least Squares for imbalanced data
 df_final = df_step_hier
 n = nrow(df_final)
 df_train = df_final[(1:n)%%5 != 0,]
@@ -290,13 +291,13 @@ summary(lm_final)
 
 par(mfrow = c(1, 2))
 
-plot(lm_step_hier, which = 1)
-plot(lm_step_hier, which = 2)
+plot(lm_final, which = 1)
+plot(lm_final, which = 2)
 
 par(mfrow = c(1, 1))
 
-### 6. Estimation of Error
 
+### 5. Estimation of Error
 lm_train = lm(quality ~ ., data = df_train, weights = wts2)
 test_pred = predict(lm_train, df_test)
 plot(test_pred, df_test$quality)
@@ -306,8 +307,8 @@ mean((test_pred-df_test$quality)^2) - 1/12
 
 table(round(test_pred), df_test$quality)
 
-### 7. Optimal Wine Design
 
+### 6. Optimal Wine Design
 summary(df_final)
 
 optx = -lm_final$coefficients[c(2,3,7:10)]/lm_final$coefficients[c(12:17)]/2
